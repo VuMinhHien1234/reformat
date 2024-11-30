@@ -1,0 +1,168 @@
+CREATE DATABASE SHOP;
+USE SHOP;
+CREATE TABLE Customer (
+    id VARCHAR(50) PRIMARY KEY,
+    name VARCHAR(100),
+    address VARCHAR(100),
+    phoneNumber VARCHAR(20)
+);
+
+
+CREATE TABLE product (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    category VARCHAR(255) NOT NULL,
+    price DOUBLE NOT NULL,
+    quantity INT NOT NULL
+) AUTO_INCREMENT=1000;
+
+CREATE TABLE `Order`(
+    id VARCHAR(50) PRIMARY KEY,
+    totalPrice DOUBLE,
+    status VARCHAR(50)
+ 
+);
+
+
+CREATE TABLE Order_Customer(
+	id_order VARCHAR(50), 
+    id_customer VARCHAR(50),
+    primary key(id_order,id_customer),
+    foreign key (id_order) references `Order`(id),
+    foreign key (id_customer) references Customer(id)
+);
+
+
+
+CREATE TABLE Order_Product (
+    order_id VARCHAR(50),
+    product_id INT,
+    quantity INT,
+    PRIMARY KEY (order_id, product_id),
+    FOREIGN KEY (order_id) REFERENCES `Order`(id),
+    FOREIGN KEY (product_id) REFERENCES Product(id)
+);
+
+CREATE TABLE Inventory (
+    product_id INT,
+    PRIMARY KEY (product_id),
+    FOREIGN KEY (product_id) REFERENCES Product(id)
+);
+CREATE TABLE Report (
+    totalSpent DOUBLE,
+    report_id INT AUTO_INCREMENT PRIMARY KEY
+);
+
+CREATE TABLE Report_Order (
+    report_id INT,
+    customer_id VARCHAR(50),
+    PRIMARY KEY (report_id, customer_id),
+    FOREIGN KEY (report_id) REFERENCES Report(report_id),
+    FOREIGN KEY (customer_id) REFERENCES `Customer`(id)
+);
+
+
+INSERT INTO Customer (id, name, address, phoneNumber) VALUES
+('KH001', 'Nguyễn Văn An', 'Hà Nội', '0912345678'),
+('KH002', 'Trần Thị Bích', 'Hà Nội', '0987654321'),
+('KH003', 'Lê Văn Cường', 'Hải Phòng', '0923456789'),
+('KH004', 'Phạm Thị Duyên', 'Đà Nẵng', '0934567890'),
+('KH005', 'Hoàng Văn Đức', 'Huế', '0945678901'),
+('KH006', 'Vũ Thị Hương', 'Cần Thơ', '0956789012'),
+('KH007', 'Đinh Văn Huy', 'Quảng Ninh', '0967890123'),
+('KH008', 'Phan Thị Mai', 'Hà Nội', '0978901234'),
+('KH009', 'Ngô Văn Minh', 'TP Hồ Chí Minh', '0989012345'),
+('KH010', 'Dương Thị Lan', 'Hải Phòng', '0901234567'),
+('KH011', 'Nguyễn Văn Phúc', 'Đà Nẵng', '0912345679'),
+('KH012', 'Lê Thị Hằng', 'Cần Thơ', '0923456788'),
+('KH013', 'Trần Văn Dũng', 'Hà Nội', '0934567891'),
+('KH014', 'Hoàng Thị Hạnh', 'Hải Dương', '0945678902'),
+('KH015', 'Phạm Văn Trí', 'Huế', '0956789013'),
+('KH016', 'Đinh Thị Hà', 'Quảng Bình', '0967890124'),
+('KH017', 'Vũ Văn Lâm', 'Nam Định', '0978901235'),
+('KH018', 'Phan Thị Thảo', 'Hà Nội', '0989012346'),
+('KH019', 'Ngô Văn Sơn', 'TP Hồ Chí Minh', '0901234578'),
+('KH020', 'Dương Thị Phương', 'Đà Nẵng', '0912345677'),
+('KH021', 'Nguyễn Thị Oanh', 'Hải Phòng', '0923456787'),
+('KH022', 'Trần Văn Lộc', 'Cần Thơ', '0934567892'),
+('KH023', 'Lê Thị Ngọc', 'Hà Nội', '0945678903'),
+('KH024', 'Hoàng Văn Nam', 'Huế', '0956789014'),
+('KH025', 'Phạm Thị Nga', 'Quảng Ninh', '0967890125'),
+('KH026', 'Đinh Văn Quang', 'Hải Dương', '0978901236'),
+('KH027', 'Vũ Thị Thu', 'Nam Định', '0989012347'),
+('KH028', 'Phan Văn Hòa', 'TP Hồ Chí Minh', '0901234579'),
+('KH029', 'Ngô Thị Thanh', 'Hà Nội', '0912345680'),
+('KH030', 'Dương Văn Phát', 'Đà Nẵng', '0923456786'),
+('KH031', 'Nguyễn Thị Hồng', 'Cần Thơ', '0934567893'),
+('KH032', 'Trần Văn Chiến', 'Hải Phòng', '0945678904'),
+('KH033', 'Lê Thị Hoa', 'Huế', '0956789015'),
+('KH034', 'Hoàng Văn Quý', 'Quảng Ninh', '0967890126'),
+('KH035', 'Phạm Thị Lan', 'Hải Dương', '0978901237'),
+('KH036', 'Đinh Văn Kiên', 'Nam Định', '0989012348'),
+('KH037', 'Vũ Thị Tuyết', 'Hà Nội', '0901234580'),
+('KH038', 'Phan Văn Thành', 'Đà Nẵng', '0912345676'),
+('KH039', 'Ngô Thị Xuân', 'Hải Phòng', '0923456785'),
+('KH040', 'Dương Văn Bách', 'Cần Thơ', '0934567894'),
+('KH041', 'Nguyễn Thị Yến', 'Huế', '0945678905'),
+('KH042', 'Trần Văn Hà', 'Quảng Ninh', '0956789016'),
+('KH043', 'Lê Thị Hải', 'Nam Định', '0967890127'),
+('KH044', 'Hoàng Văn Hùng', 'Hà Nội', '0978901238'),
+('KH045', 'Phạm Thị Thu', 'Đà Nẵng', '0989012349'),
+('KH046', 'Đinh Văn Hảo', 'Hải Phòng', '0901234581'),
+('KH047', 'Vũ Thị Bảo', 'Cần Thơ', '0912345675'),
+('KH048', 'Phan Văn Cường', 'Huế', '0923456784'),
+('KH049', 'Ngô Thị Tâm', 'Hải Dương', '0934567895'),
+('KH050', 'Dương Văn Hạnh', 'Nam Định', '0945678906');
+
+
+
+INSERT INTO product (name, category, price, quantity) VALUES
+('Smartphone Samsung Galaxy', 'Electronics', 600.50, 100),
+('Laptop Dell Inspiron', 'Electronics', 799.75, 50),
+('Smart TV Sony 55"', 'Electronics', 999.40, 20),
+('Bluetooth Speaker JBL', 'Electronics', 129.30, 70),
+('Wireless Earbuds Apple AirPods', 'Electronics', 200.20, 60),
+('Digital Camera Canon EOS', 'Electronics', 499.80, 15),
+('Smartwatch Xiaomi', 'Electronics', 100.60, 80),
+('Gaming Console Sony PlayStation', 'Electronics', 500.25, 30),
+('Tablet Samsung Galaxy Tab', 'Electronics', 400.90, 40),
+('Router TP-Link Archer', 'Electronics', 60.45, 90),
+('Refrigerator LG', 'Home Appliances', 899.10, 10),
+('Washing Machine Samsung', 'Home Appliances', 799.55, 15),
+('Microwave Oven Panasonic', 'Home Appliances', 200.85, 25),
+('Vacuum Cleaner Dyson', 'Home Appliances', 499.90, 18),
+('Blender Philips', 'Home Appliances', 100.40, 30),
+('Air Conditioner Daikin', 'Home Appliances', 699.70, 8),
+('Electric Kettle Bosch', 'Home Appliances', 60.20, 50),
+('Electric Iron Tefal', 'Home Appliances', 79.80, 40),
+('Air Fryer Philips', 'Home Appliances', 150.65, 22),
+('Rice Cooker Zojirushi', 'Home Appliances', 180.35, 30),
+('Bread Toaster Panasonic', 'Home Appliances', 90.50, 25),
+('Cookies Pack Danish', 'Food', 5.75, 200),
+('Instant Noodles Cup', 'Food', 1.85, 500),
+('Coffee Beans Arabica', 'Food', 10.60, 100),
+('Green Tea Leaves', 'Food', 7.40, 150),
+('Frozen Pizza Pepperoni', 'Food', 8.95, 120),
+('Pack of Chips Lays', 'Food', 2.80, 300),
+('Chocolate Bar Cadbury', 'Food', 3.90, 250),
+('Canned Tuna', 'Food', 4.50, 200),
+('Frozen Vegetables Mixed', 'Food', 6.75, 180),
+('Fresh Milk 1L', 'Food', 1.25, 500),
+('Orange Juice 1L', 'Food', 2.75, 400),
+('Eggs 12-pack', 'Food', 3.50, 300),
+('Butter Salted 500g', 'Food', 4.20, 200),
+('Cheese Cheddar 200g', 'Food', 5.90, 150),
+('Yogurt Plain 150g', 'Food', 0.85, 500),
+('Ice Cream Tub Vanilla', 'Food', 7.60, 100),
+('Pack of Biscuits Oreo', 'Food', 2.50, 350),
+('Energy Drink Red Bull', 'Food', 1.95, 400),
+('Soft Drink Coca-Cola 2L', 'Food', 3.25, 300),
+('Cereal Box Cornflakes', 'Food', 4.75, 250),
+('Honey Jar 500g', 'Food', 6.40, 100),
+('Pack of Sugar 1kg', 'Food', 3.10, 250),
+('Pack of Salt 1kg', 'Food', 1.20, 300),
+('Cooking Oil 1L', 'Food', 5.00, 150),
+('Pack of Flour 1kg', 'Food', 3.50, 200),
+('Bottled Water 1.5L', 'Food', 0.80, 600),
+('Pack of Spaghetti 500g', 'Food', 2.40, 250);
+
