@@ -26,7 +26,6 @@ public class CustomerResponse {
                 customerList.add(customer);
                 DefaultTableModel model = (DefaultTableModel) table.getModel();
                 model.addRow(new Object[]{id, name, address, phoneNumber});
-
                 JOptionPane.showMessageDialog(table, "Customer added successfully!");
                 clearFields(txtId, txtName, txtAddress, txtPhoneNumber);
             }
@@ -64,7 +63,6 @@ public class CustomerResponse {
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setString(1, customer.getId());
             int rowsDeleted = statement.executeUpdate();
-
             if (rowsDeleted > 0) {
                 customerList.remove(selectedRow);
                 model.removeRow(selectedRow);
@@ -89,10 +87,8 @@ public class CustomerResponse {
                 String name = rs.getString("name");
                 String address = rs.getString("address");
                 String phoneNumber = rs.getString("phoneNumber");
-
                 Customer customer = new Customer(id, name, address, phoneNumber);
                 customerList.add(customer);
-
                 model.addRow(new Object[]{id, name, address, phoneNumber});
             }
         } catch (SQLException e1) {

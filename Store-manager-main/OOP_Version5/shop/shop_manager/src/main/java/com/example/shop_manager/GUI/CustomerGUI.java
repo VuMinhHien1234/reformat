@@ -88,7 +88,6 @@ public class CustomerGUI extends JPanel {
                 String name = txtName.getText();
                 String address = txtAddress.getText();
                 String phoneNumber = txtPhoneNumber.getText();
-
                 logic.addCustomer(id, name, address, phoneNumber, table, txtId, txtName, txtAddress, txtPhoneNumber);
             }
         });
@@ -132,10 +131,7 @@ public class CustomerGUI extends JPanel {
             }
         });
         panel.add(btnLoadData);
-
         add(panel, BorderLayout.EAST);
-
-        // Create a logic object to call methods from
         logic = new CustomerResponse();
     }
 

@@ -1,6 +1,7 @@
 package com.example.shop_manager.Main;
 
 import com.example.shop_manager.GUI.CustomerGUI;
+import com.example.shop_manager.GUI.OrderGUI;
 
 import javax.swing.*;
 
@@ -18,7 +19,7 @@ public class ShopApp extends javax.swing.JFrame{
 
         tabbedPane.addTab("Customer", new CustomerGUI());
 //        tabbedPane.addTab("Product", new ProductDataBase());
-//        tabbedPane.addTab("Order", new OrderDataBase());
+        tabbedPane.addTab("Order", new OrderGUI());
 //        tabbedPane.addTab("Report", new ReportDataBase());
 //        tabbedPane.addTab("Inventory", new InventoryDataBase());
 
