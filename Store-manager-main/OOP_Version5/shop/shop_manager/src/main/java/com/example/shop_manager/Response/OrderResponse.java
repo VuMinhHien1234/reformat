@@ -20,21 +20,117 @@ public class OrderResponse {
                 return;
             }
 
-            boolean isCustomerValid = checkCustomerExist(conn, customerId);
-            boolean isProductValid = checkProductExist(conn, productId);
-
-            if (!isCustomerValid || !isProductValid) {
-                return;
+            boolean isCustomerValid = false;
+            while (!isCustomerValid) {
+                String checkCustomer = "SELECT * FROM Customer WHERE id = ?";
+                try (PreparedStatement stmt = conn.prepareStatement(checkCustomer)) {
+                    stmt.setString(1, customerId);
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (rs.next()) {
+                            isCustomerValid = true; // Tìm thấy Customer ID
+                        } else {
+                            JOptionPane.showMessageDialog(null, "Customer ID not found. Please try again.");
+                            customerId = JOptionPane.showInputDialog(null, "Enter Customer ID:");
+                            if (customerId == null || customerId.trim().isEmpty()) {
+                                JOptionPane.showMessageDialog(null, "Customer ID cannot be empty.");
+                            }
+                        }
+                    }
+                }
+            }
+            boolean isProductValid = false;
+            while (!isProductValid) {
+                String checkProduct = "SELECT * FROM Product WHERE id = ?";
+                try (PreparedStatement stmt = conn.prepareStatement(checkProduct)) {
+                    stmt.setString(1, productId);
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (rs.next()) {
+                            isProductValid = true;
+                        } else {
+                            JOptionPane.showMessageDialog(null, "Product ID not found. Please try again.");
+                            productId = JOptionPane.showInputDialog(null, "Enter Product ID:");
+                            if (productId == null || productId.trim().isEmpty()) {
+                                JOptionPane.showMessageDialog(null, "Product ID cannot be empty.");
+                            }
+                        }
+                    }
+                }
             }
 
-            if (!checkOrderExist(conn, orderId)) {
-                insertOrder(conn, orderId);
+
+            String checkOrder = "SELECT id FROM `Order` WHERE id = ?";
+            try (PreparedStatement checkOrderStmt = conn.prepareStatement(checkOrder)) {
+                checkOrderStmt.setString(1, orderId);
+                try (ResultSet rs = checkOrderStmt.executeQuery()) {
+                    if (!rs.next()) {
+                        // Nếu Order ID không tồn tại, thêm một Order mới
+                        String insertOrder = "INSERT INTO `Order` (id, totalPrice, status) VALUES (?, 0, '1')";
+                        try (PreparedStatement insertOrderStmt = conn.prepareStatement(insertOrder)) {
+                            insertOrderStmt.setString(1, orderId);
+                            insertOrderStmt.executeUpdate();
+                        }
+                        JOptionPane.showMessageDialog(null, "Updated Order successfully.");
+                    }
+                    else{
+                        JOptionPane.showMessageDialog(null, "Order ID is already in use.");
+                        return;
+                    }
+                }
             }
 
-            insertOrderCustomer(conn, orderId, customerId);
-            insertOrderProduct(conn, orderId, productId, quantity);
-            updateProductQuantity(conn, productId, quantity);
-            updateOrderPrice(conn, orderId, productId, quantity);
+            String insertOrder = "INSERT INTO Order_Customer (id_order, id_customer) VALUES (?, ?)";
+            try (PreparedStatement stmt = conn.prepareStatement(insertOrder)) {
+                stmt.setString(1, orderId);
+                stmt.setString(2, customerId);
+                stmt.executeUpdate();
+
+            } catch (SQLException e) {
+                conn.rollback();
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(null, "Error while inserting order.");
+            }
+            String checkProduct = "SELECT quantity, price FROM Product WHERE id = ?";
+            try (PreparedStatement checkProductStmt = conn.prepareStatement(checkProduct)) {
+                checkProductStmt.setString(1, productId);
+                try (ResultSet rs = checkProductStmt.executeQuery()) {
+                    if (rs.next()) {
+                        int availableQuantity = rs.getInt("quantity");
+                        double productPrice = rs.getDouble("price");
+                        if (availableQuantity < quantity) {
+                            JOptionPane.showMessageDialog(null, "Not enough product in stock.");
+                            return;
+                        }
+
+                        // Thêm sản phẩm vào Order_Product
+                        String insertOrderProduct = "INSERT INTO Order_Product (order_id, product_id, quantity) VALUES (?, ?, ?)";
+                        try (PreparedStatement insertOrderProductStmt = conn.prepareStatement(insertOrderProduct)) {
+                            insertOrderProductStmt.setString(1, orderId);
+                            insertOrderProductStmt.setString(2, productId);
+                            insertOrderProductStmt.setInt(3, quantity);
+                            insertOrderProductStmt.executeUpdate();
+                        }
+
+                        // Trừ số lượng trong kho
+                        String updateProductQuantity = "UPDATE Product SET quantity = quantity - ? WHERE id = ?";
+                        try (PreparedStatement updateProductStmt = conn.prepareStatement(updateProductQuantity)) {
+                            updateProductStmt.setInt(1, quantity);
+                            updateProductStmt.setString(2, productId);
+                            updateProductStmt.executeUpdate();
+                        }
+
+                        // Cập nhật tổng giá trị đơn hàng
+                        String updateOrderPrice= "UPDATE `Order` SET totalPrice = totalPrice + ? WHERE id = ?";
+                        try (PreparedStatement updateOrderPriceStmt = conn.prepareStatement(updateOrderPrice)) {
+                            updateOrderPriceStmt.setDouble(1, productPrice*quantity);
+                            updateOrderPriceStmt.setString(2, orderId);
+                            updateOrderPriceStmt.executeUpdate();
+                        }
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Product ID not found.");
+                        return;
+                    }
+                }
+            }
 
             JOptionPane.showMessageDialog(null, "Order added successfully!");
         } catch (Exception e) {
@@ -73,13 +169,13 @@ public class OrderResponse {
                     // Xóa dòng trong bảng JTable
                     int selectedRow = orderTable.getSelectedRow();
                     tableModel.removeRow(selectedRow);
-                } else {
-                    JOptionPane.showMessageDialog(null, "Order ID not found.");
                 }
             }
+            conn.commit();
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(null, "Database error: " + ex.getMessage());
         }
+        loadData(tableModel);
     }
 
     // Cập nhật đơn hàng
@@ -116,7 +212,7 @@ public class OrderResponse {
 
                 int rowsUpdatedOrder = statementOrder.executeUpdate();
                 if (rowsUpdatedOrder <= 0) {
-                    JOptionPane.showMessageDialog(null, "Order not found or update failed.", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "OrderID not found .", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
             }
@@ -210,109 +306,6 @@ public class OrderResponse {
         }
     }
 
-    // Kiểm tra xem customer có tồn tại trong cơ sở dữ liệu không
-    private static boolean checkCustomerExist(Connection conn, String customerId) {
-        String sql = "SELECT COUNT(*) FROM Customer WHERE id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, customerId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1) > 0;
-            }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-        return false;
-    }
-
-    // Kiểm tra xem product có tồn tại trong cơ sở dữ liệu không
-    private static boolean checkProductExist(Connection conn, String productId) {
-        String sql = "SELECT COUNT(*) FROM Product WHERE id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, productId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1) > 0;
-            }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-        return false;
-    }
-
-    // Kiểm tra xem order có tồn tại trong cơ sở dữ liệu không
-    private static boolean checkOrderExist(Connection conn, String orderId) {
-        String sql = "SELECT COUNT(*) FROM `Order` WHERE id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, orderId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1) > 0;
-            }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-        return false;
-    }
-
-    // Thêm đơn hàng vào bảng Order
-    private static void insertOrder(Connection conn, String orderId) throws SQLException {
-        String insertOrder = "INSERT INTO `Order` (id) VALUES (?)";
-        try (PreparedStatement stmt = conn.prepareStatement(insertOrder)) {
-            stmt.setString(1, orderId);
-            stmt.executeUpdate();
-        }
-    }
-
-    // Thêm Order_Customer vào cơ sở dữ liệu
-    private static void insertOrderCustomer(Connection conn, String orderId, String customerId) throws SQLException {
-        String insertOrderCustomer = "INSERT INTO Order_Customer (id_order, id_customer) VALUES (?, ?)";
-        try (PreparedStatement stmt = conn.prepareStatement(insertOrderCustomer)) {
-            stmt.setString(1, orderId);
-            stmt.setString(2, customerId);
-            stmt.executeUpdate();
-        }
-    }
-
-    // Thêm Order_Product vào cơ sở dữ liệu
-    private static void insertOrderProduct(Connection conn, String orderId, String productId, int quantity) throws SQLException {
-        String insertOrderProduct = "INSERT INTO Order_Product (order_id, product_id, quantity) VALUES (?, ?, ?)";
-        try (PreparedStatement stmt = conn.prepareStatement(insertOrderProduct)) {
-            stmt.setString(1, orderId);
-            stmt.setString(2, productId);
-            stmt.setInt(3, quantity);
-            stmt.executeUpdate();
-        }
-    }
-
-    // Cập nhật số lượng sản phẩm trong bảng Product
-    private static void updateProductQuantity(Connection conn, String productId, int quantity) throws SQLException {
-        String updateProduct = "UPDATE Product SET quantity = quantity - ? WHERE id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(updateProduct)) {
-            stmt.setInt(1, quantity);
-            stmt.setString(2, productId);
-            stmt.executeUpdate();
-        }
-    }
-
-    // Cập nhật giá trị tổng của đơn hàng trong bảng Order
-    private static void updateOrderPrice(Connection conn, String orderId, String productId, int quantity) throws SQLException {
-        String sql = """
-                UPDATE `Order`
-                SET totalPrice = (
-                    SELECT SUM(p.price * op.quantity)
-                    FROM Order_Product op
-                    JOIN Product p ON op.product_id = p.id
-                    WHERE op.order_id = ?
-                )
-                WHERE id = ?
-                """;
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, orderId);
-            stmt.setString(2, orderId);
-            stmt.executeUpdate();
-        }
-    }
 }
 
 
